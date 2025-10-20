@@ -54,16 +54,30 @@ public class ExpenseTrackerController : ControllerBase
         {
             await using var buffer = new MemoryStream();
             await receipt.CopyToAsync(buffer);
-            var imageBytes = buffer.ToArray();
-            var base64Image = Convert.ToBase64String(imageBytes);
+            // var imageBytes = buffer.ToArray();
+            // var base64Image = Convert.ToBase64String(imageBytes);
             buffer.Position = 0;
+
+            // write the receipt to uploads folder
+            // no matter what it is
+            // var originalPath = Path.Combine(uploadDir, Path.GetRandomFileName() + Path.GetExtension(receipt.FileName));
+            // await using (var target = System.IO.File.Create(originalPath))
+            // {
+            //     await receipt.CopyToAsync(target, HttpContext.RequestAborted);
+            // }
 
             using var image = new MagickImage(buffer);
             image.Format = MagickFormat.Jpeg;
 
-            var jpgPath = Path.Combine(uploadDir, Path.ChangeExtension(Path.GetRandomFileName(), ".jpg"));
-            image.Write(jpgPath);
-            jpgPaths.Add(jpgPath);
+            image.Resize(new MagickGeometry(image.Width / 2, image.Height / 2) { IgnoreAspectRatio = false });
+            image.FilterType = FilterType.Lanczos;
+            image.Quality = 95;
+            var resizedBytes = image.ToByteArray(MagickFormat.Jpeg);
+            var base64Image = Convert.ToBase64String(resizedBytes);
+
+            // var jpgPath = Path.Combine(uploadDir, Path.ChangeExtension(Path.GetRandomFileName(), ".jpg"));
+            // image.Write(jpgPath);
+            // jpgPaths.Add(jpgPath);
 
             var mimeType = string.IsNullOrWhiteSpace(receipt.ContentType) ? "image/heic" : receipt.ContentType;
             imagesForGemini.Add((mimeType, base64Image));
