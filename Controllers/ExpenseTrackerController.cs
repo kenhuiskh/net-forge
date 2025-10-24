@@ -26,9 +26,11 @@ public class ExpenseTrackerController : ControllerBase
     }
 
     [HttpGet("helloworld")]
-    public string HelloWorld()
+    public IActionResult HelloWorld()
     {
-        return "Hello World Endpoint Testing";
+        return Ok(new {
+            Message = "Hello World from ExpenseTrackerController!"
+        });
     }
 
     [HttpPost("upload/receipt")]

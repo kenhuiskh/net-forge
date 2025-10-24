@@ -11,6 +11,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy.AllowAnyMethod()
+              .AllowAnyHeader()
+              .WithOrigins("http://localhost:3000", "http://localhost:5002");
+    });
+});
+
 builder.Services.Configure<GeminiSettings>(options =>
 {
     options.ApiKey = builder.Configuration["GEMINI_API_KEY"] ?? string.Empty;
@@ -24,6 +36,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseCors("AllowLocalhost");
 
 app.UseHttpsRedirection();
 
