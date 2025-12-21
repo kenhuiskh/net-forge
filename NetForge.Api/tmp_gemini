@@ -1,0 +1,43 @@
+        if (string.IsNullOrWhiteSpace(_geminiApiKey))
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "Gemini API key is not configured.");
+        }
+
+        string? geminiSummary;
+        string? csvPath = null;
+
+        try
+        {
+            var prompt = _geminiClient.BuildReceiptExtractionPrompt();
+            geminiSummary = await _geminiClient.GenerateContentAsync(
+                prompt,
+                imagesForGemini,
+                HttpContext.RequestAborted);
+        }
+        catch (InvalidOperationException ex)
+        {
+            geminiSummary = $"Configuration error: {ex.Message}";
+        }
+        catch (HttpRequestException ex)
+        {
+            geminiSummary = $"Gemini request failed: {ex.Message}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(geminiSummary))
+        {
+            var csvContent = ExtractCsvFromResponse(geminiSummary);
+            if (!string.IsNullOrWhiteSpace(csvContent))
+            {
+                var csvFileName = $"gemini-summary-{DateTime.UtcNow:yyyyMMddHHmmssfff}.csv";
+                csvPath = Path.Combine(uploadDir, csvFileName);
+                await System.IO.File.WriteAllTextAsync(csvPath, csvContent);
+            }
+        }
+
+        return Ok(new
+        {
+            Message = "Receipts uploaded successfully!",
+            FilePaths = jpgPaths,
+            GeminiSummary = geminiSummary,
+            GeminiCsvPath = csvPath
+        });
