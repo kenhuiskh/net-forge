@@ -7,31 +7,16 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using NetForge.Configuration;
+using NetForge.Core.Configuration;
+using NetForge.Core.Interfaces;
+using NetForge.Core.Utils;
 
-namespace NetForge.Services;
+namespace NetForge.Api.Services;
 
-public class GeminiClient
+public class GeminiClient : IGeminiClient
 {
     private const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
-    private const string DefaultModel = "gemini-2.0-flash";
-
-    private static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> CategoryDefinitions =
-        new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Food"] = new[]
-            {
-                "Rice/Dry", "Drinks", "Tins/Frozen", "Breakfast", "Vegetable", "Fruits",
-                "Meat", "Sauce", "Dairy", "Snacks", "Seafood"
-            },
-            ["Household"] = new[] { "Toiletries", "Kitchen", "Others" },
-            ["HST"] = Array.Empty<string>(),
-            ["Beauty"] = new[] { "Others", "Supplement" },
-            ["Dining"] = new[] { "Lunch", "Dinner" },
-            ["Pet"] = new[] { "Kibble", "Can", "Medical", "Wet Food", "Litter" },
-            ["Other"] = new[] { "Clothes", "Stationary", "House", "Learning", "Entertainment" },
-            ["Commute"] = new[] { "Travel", "Car Rental", "Public" }
-        };
+    private const string DefaultModel = "gemini-2.5-flash-lite";
 
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
@@ -63,7 +48,7 @@ public class GeminiClient
 
         var parts = new List<object>
         {
-            new { text = BuildReceiptExtractionPrompt() + "\n" + prompt }
+            new { text = PromptTemplates.BuildReceiptExtractionPrompt() + "\n" + prompt }
         };
 
         parts.AddRange(imageParts.Select(image => new
@@ -125,29 +110,5 @@ public class GeminiClient
         }
 
         return null;
-    }
-
-    public string BuildReceiptExtractionPrompt()
-    {
-        var categories = string.Join(", ", CategoryDefinitions.Keys);
-        var subcategories = string.Join(", ", CategoryDefinitions
-            .SelectMany(pair => pair.Value)
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Distinct(StringComparer.OrdinalIgnoreCase));
-
-        var builder = new StringBuilder();
-        builder.AppendLine("Please give me the following information and put in csv format.");
-        builder.AppendLine("1. Purchase date (The date could be in various formats. however, the year must be 2025, and please use the format MM/DD/YYYY),");
-        builder.AppendLine("2. Merchant/Vendor (Please use carmel case, e.g. NoFrills, Walmart, Costco),");
-        builder.AppendLine("3. Item Name,");
-        builder.AppendLine("4. Item quantity (integer if there is no item unit and default is 1),");
-        builder.AppendLine("5. Item unit (if any, e.g. kg, g, lb. If there is no item unit, please leave it blank),");
-        builder.AppendLine("6. Item Price,");
-        builder.AppendLine("7. Item Average price,");
-        builder.AppendLine($"8. Item category (available categories: {categories}),");
-        builder.AppendLine($"9. Item Subcategory (available subcategories: {subcategories})");
-        builder.Append("The output must be in a valid CSV format with 9 columns.");
-
-        return builder.ToString();
     }
 }

@@ -7,4 +7,20 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.1" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.10.0" />    
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetForge.Api\NetForge.Api.csproj" />
+    <ProjectReference Include="..\NetForge.Core\NetForge.Core.csproj" />
+  </ItemGroup>  
+
 </Project>

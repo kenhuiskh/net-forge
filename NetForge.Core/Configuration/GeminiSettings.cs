@@ -1,4 +1,4 @@
-namespace NetForge.Configuration;
+namespace NetForge.Core.Configuration;
 
 public class GeminiSettings
 {

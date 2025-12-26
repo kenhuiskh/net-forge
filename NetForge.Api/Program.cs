@@ -1,8 +1,18 @@
 using DotNetEnv;
-using NetForge.Configuration;
-using NetForge.Services;
+using NetForge.Core.Configuration;
+using NetForge.Core.Interfaces;
+using NetForge.Api.Services;
 
-Env.Load(); // Load .env into process env vars
+var envPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env");
+if (File.Exists(envPath))
+{
+    Env.Load(envPath);
+}
+else
+{
+    // Fallback to default behavior if not found
+    Env.Load();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +37,7 @@ builder.Services.Configure<GeminiSettings>(options =>
 {
     options.ApiKey = builder.Configuration["GEMINI_API_KEY"] ?? string.Empty;
 });
-builder.Services.AddHttpClient<GeminiClient>();
+builder.Services.AddHttpClient<IGeminiClient, GeminiClient>();
 
 var app = builder.Build();
 

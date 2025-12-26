@@ -7,21 +7,20 @@ using ImageMagick;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using NetForge.Configuration;
-using NetForge.Services;
+using NetForge.Core.Configuration;
+using NetForge.Core.Interfaces;
+using NetForge.Api.Services;
 
-namespace NetForge.Controllers;
+namespace NetForge.Api.Controllers;
 
 [ApiController]
 [Route("api/expenses")]
 public class ExpenseTrackerController : ControllerBase
 {
-    private readonly string _geminiApiKey;
-    private readonly GeminiClient _geminiClient;
+    private readonly IGeminiClient _geminiClient;
 
-    public ExpenseTrackerController(IOptions<GeminiSettings> geminiOptions, GeminiClient geminiClient)
+    public ExpenseTrackerController(IGeminiClient geminiClient)
     {
-        _geminiApiKey = geminiOptions.Value.ApiKey;
         _geminiClient = geminiClient;
     }
 
@@ -110,11 +109,6 @@ public class ExpenseTrackerController : ControllerBase
     [HttpPost("analyze/receipt")]
     public async Task<IActionResult> AnalyzeReceipt()
     {
-        if (string.IsNullOrWhiteSpace(_geminiApiKey))
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, "Gemini API key is not configured.");
-        }
-
         var jpgPaths = new List<string>();
         var imagesForGemini = new List<(string MimeType, string Base64Data)>();
 
@@ -327,11 +321,6 @@ public class ExpenseTrackerController : ControllerBase
 
     private async Task<IActionResult> HandleSingleFileUpload(IFormFile receipt)
     {
-        if (string.IsNullOrWhiteSpace(_geminiApiKey))
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, "Gemini API key is not configured.");
-        }
-
         var uploadDir = GetUploadDirectory();
         var fileName = $"receipt_{Path.GetRandomFileName()}{Path.GetExtension(receipt.FileName)}";
         var filePath = Path.Combine(uploadDir, fileName);
@@ -349,34 +338,5 @@ public class ExpenseTrackerController : ControllerBase
             FilePath = filePath,
             FileSize = receipt.Length
         });
-    }
-
-    private static string? ExtractCsvFromResponse(string response)
-    {
-        if (string.IsNullOrWhiteSpace(response))
-        {
-            return null;
-        }
-
-        var trimmed = response.Trim();
-
-        const string fence = "```";
-        if (trimmed.StartsWith(fence, StringComparison.Ordinal))
-        {
-            var firstNewLine = trimmed.IndexOf('\n');
-            if (firstNewLine >= 0)
-            {
-                trimmed = trimmed[(firstNewLine + 1)..];
-            }
-        }
-
-        if (trimmed.EndsWith(fence, StringComparison.Ordinal))
-        {
-            trimmed = trimmed[..^fence.Length];
-        }
-
-        trimmed = trimmed.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
-
-        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 }
