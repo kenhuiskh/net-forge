@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NetForge.Core.Models;
 
-public static class ExpenseCategories
+public static class ExpenseCategoryDefinitions
 {
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> Definitions =
         new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase)

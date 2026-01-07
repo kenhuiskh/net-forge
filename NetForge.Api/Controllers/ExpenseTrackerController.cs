@@ -24,23 +24,6 @@ public class ExpenseTrackerController : ControllerBase
         _geminiClient = geminiClient;
     }
 
-    [HttpGet("helloworld")]
-    public IActionResult HelloWorld()
-    {
-        return Ok(new {
-            Message = "Hello World from ExpenseTrackerController!"
-        });
-    }
-
-    [HttpGet("byebyeworld")]
-    public IActionResult ByeByeWorld()
-    {
-        return Ok(new {
-            Message = "Bye Bye World from ExpenseTrackerController!",
-            Timestamp = DateTime.UtcNow
-        });
-    }
-
     [HttpGet("hello/{name}")]
     public IActionResult HelloName(string name)
     {

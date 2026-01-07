@@ -8,8 +8,8 @@ public static class PromptTemplates
 {
     public static string BuildReceiptExtractionPrompt()
     {
-        var categories = string.Join(", ", ExpenseCategories.Definitions.Keys);
-        var subcategories = string.Join(", ", ExpenseCategories.Definitions
+        var categories = string.Join(", ", ExpenseCategoryDefinitions.Definitions.Keys);
+        var subcategories = string.Join(", ", ExpenseCategoryDefinitions.Definitions
             .SelectMany(pair => pair.Value)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct(StringComparer.OrdinalIgnoreCase));

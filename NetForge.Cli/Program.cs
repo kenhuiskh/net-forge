@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Spectre.Console.Cli;
 using NetForge.Cli.Commands;
 using NetForge.Cli.Infrastructure;
 using NetForge.Core.Configuration;
 using NetForge.Core.Interfaces;
+using NetForge.Core.Data;
 using NetForge.Api.Services;
 using DotNetEnv;
 
@@ -37,6 +39,13 @@ services.Configure<GeminiSettings>(options =>
 
 // Add HttpClient and GeminiClient
 services.AddHttpClient<IGeminiClient, GeminiClient>();
+
+// Add DbContext
+services.AddDbContext<NetForgeDbContext>(options =>
+{
+    options.UseNpgsql(configuration["DB_CONNECTION_STRING"])
+            .UseSnakeCaseNamingConvention();
+});
 
 var registrar = new TypeRegistrar(services);
 var app = new CommandApp(registrar);
